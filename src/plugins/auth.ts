@@ -8,6 +8,9 @@ declare module 'fastify' {
     accountId: string;
     account: { id: string; name: string; email: string; webhookUrl: string | null; webhookSecret: string | null };
   }
+  interface FastifyContextConfig {
+    skipAuth?: boolean;
+  }
 }
 
 const authPlugin: FastifyPluginAsync = async (fastify) => {
@@ -19,6 +22,8 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     if (request.url === '/health') return;
     // Skip auth for FreeSWITCH webhooks (authenticated by IP/secret)
     if (request.url.startsWith('/internal/')) return;
+    // Skip auth for routes with skipAuth config
+    if (request.routeOptions.config.skipAuth) return;
 
     const authHeader = request.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {

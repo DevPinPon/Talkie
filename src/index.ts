@@ -43,6 +43,13 @@ async function main() {
         error: { code: 'VALIDATION_ERROR', message: 'Invalid request', details: error.errors },
       });
     }
+    // Handle Fastify built-in errors (JSON parse, etc.)
+    const err = error as any;
+    if (err.statusCode && typeof err.statusCode === 'number' && err.statusCode < 500) {
+      return reply.status(err.statusCode).send({
+        error: { code: 'BAD_REQUEST', message: err.message },
+      });
+    }
     fastify.log.error(error);
     return reply.status(500).send({
       error: { code: 'INTERNAL_ERROR', message: 'Internal server error' },
