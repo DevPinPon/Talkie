@@ -123,7 +123,7 @@ class FreeSwitchService extends EventEmitter {
   async originate(params: {
     to: string;
     from: string;
-    gateway: string;
+    gateway?: string;
     callUuid: string;
     audioStreamUrl?: string;
   }): Promise<string> {
@@ -142,7 +142,19 @@ class FreeSwitchService extends EventEmitter {
     }
 
     const varString = `{${vars.join(',')}}`;
-    const dialString = `sofia/gateway/${gateway}/${to}`;
+
+    // Route to internal extension or external gateway
+    let dialString: string;
+    if (to.match(/^(10[0-9]{2})$/)) {
+      // Internal SIP extension (1001-1099)
+      dialString = `user/${to}`;
+    } else if (gateway) {
+      dialString = `sofia/gateway/${gateway}/${to}`;
+    } else {
+      // Default to internal dialplan
+      dialString = `sofia/internal/${to}`;
+    }
+
     const app = audioStreamUrl ? `&socket(${audioStreamUrl})` : '&park()';
 
     const cmd = `originate ${varString}${dialString} ${app}`;

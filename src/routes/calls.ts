@@ -7,9 +7,12 @@ import { freeswitchService } from '../services/freeswitch.js';
 import { emitCallEvent } from '../services/webhook.js';
 import { NotFoundError, BadRequestError } from '../lib/errors.js';
 
+// Accept E.164 numbers (+1234567890) or internal SIP extensions (1001-1099)
+const phoneOrExtension = z.string().regex(/^(\+[1-9]\d{1,14}|10[0-9]{2})$/, 'Must be E.164 format or internal extension (1001-1099)');
+
 const createCallSchema = z.object({
-  to: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Must be E.164 format'),
-  from: z.string().regex(/^\+[1-9]\d{1,14}$/, 'Must be E.164 format'),
+  to: phoneOrExtension,
+  from: phoneOrExtension,
   webhookUrl: z.string().url().optional(),
   agentId: z.string().optional(),
   agentConfig: z.object({
@@ -43,21 +46,24 @@ const callsRoutes: FastifyPluginAsync = async (fastify) => {
     const body = createCallSchema.parse(request.body);
     const callId = uuid();
 
-    // Verify the 'from' number belongs to this account
-    const [phoneNumber] = await db
-      .select()
-      .from(schema.phoneNumbers)
-      .where(
-        and(
-          eq(schema.phoneNumbers.number, body.from),
-          eq(schema.phoneNumbers.accountId, request.accountId),
-          eq(schema.phoneNumbers.status, 'active'),
-        ),
-      )
-      .limit(1);
+    // Verify the 'from' number belongs to this account (skip for internal extensions)
+    const isInternalExt = /^10[0-9]{2}$/.test(body.from);
+    if (!isInternalExt) {
+      const [phoneNumber] = await db
+        .select()
+        .from(schema.phoneNumbers)
+        .where(
+          and(
+            eq(schema.phoneNumbers.number, body.from),
+            eq(schema.phoneNumbers.accountId, request.accountId),
+            eq(schema.phoneNumbers.status, 'active'),
+          ),
+        )
+        .limit(1);
 
-    if (!phoneNumber) {
-      throw new BadRequestError(`Phone number ${body.from} is not owned by this account or not active`);
+      if (!phoneNumber) {
+        throw new BadRequestError(`Phone number ${body.from} is not owned by this account or not active`);
+      }
     }
 
     // Insert call record
@@ -79,7 +85,6 @@ const callsRoutes: FastifyPluginAsync = async (fastify) => {
       await freeswitchService.originate({
         to: body.to,
         from: body.from,
-        gateway: 'telnyx',
         callUuid: callId,
       });
 

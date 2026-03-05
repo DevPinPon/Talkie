@@ -1,0 +1,64 @@
+<include>
+  <context name="default">
+
+    <!-- Internal extension-to-extension calls (1001-1099) -->
+    <extension name="local_extension">
+      <condition field="destination_number" expression="^(10[0-9]{2})$">
+        <action application="set" data="dialed_extension=$1"/>
+        <action application="set" data="dialed_user=$1"/>
+        <action application="set" data="dialed_domain=$${domain}"/>
+        <action application="set" data="ringback=${us-ring}"/>
+        <action application="set" data="transfer_ringback=${us-ring}"/>
+        <action application="set" data="call_timeout=30"/>
+        <action application="set" data="hangup_after_bridge=true"/>
+        <action application="bridge" data="user/${dialed_extension}@$${domain}"/>
+      </condition>
+    </extension>
+
+    <!-- Outbound calls via API/ESL — bridged to internal extension -->
+    <extension name="api_to_extension">
+      <condition field="destination_number" expression="^(ext_10[0-9]{2})$">
+        <action application="set" data="dialed_extension=${destination_number:4}"/>
+        <action application="set" data="dialed_user=${destination_number:4}"/>
+        <action application="set" data="dialed_domain=$${domain}"/>
+        <action application="set" data="call_timeout=30"/>
+        <action application="set" data="hangup_after_bridge=true"/>
+
+        <!-- Notify Talkie API that call is ringing -->
+        <action application="export" data="execute_on_answer=curl ${talkie_api_url}/internal/calls/event post uuid=${uuid}&event=answered"/>
+
+        <action application="bridge" data="user/${dialed_extension}@$${domain}"/>
+      </condition>
+    </extension>
+
+    <!-- Inbound from extensions to Talkie API (agent calls) -->
+    <extension name="call_agent">
+      <condition field="destination_number" expression="^(20[0-9]{2})$">
+        <!-- 2xxx numbers route to Talkie API for AI agent handling -->
+        <action application="set" data="talkie_call_direction=inbound"/>
+        <action application="set" data="talkie_from=${caller_id_number}"/>
+        <action application="set" data="talkie_to=${destination_number}"/>
+        <action application="curl" data="${talkie_api_url}/internal/calls/inbound post from=${caller_id_number}&amp;to=${destination_number}&amp;sipCallId=${sip_call_id}&amp;freeswitchUuid=${uuid}"/>
+        <action application="answer"/>
+        <action application="park"/>
+      </condition>
+    </extension>
+
+    <!-- Echo test — dial 9196 to hear yourself -->
+    <extension name="echo">
+      <condition field="destination_number" expression="^9196$">
+        <action application="answer"/>
+        <action application="echo"/>
+      </condition>
+    </extension>
+
+    <!-- Tone test — dial 9198 for tone stream -->
+    <extension name="tone_stream">
+      <condition field="destination_number" expression="^9198$">
+        <action application="answer"/>
+        <action application="playback" data="tone_stream://%(200,100,500,600,700)"/>
+      </condition>
+    </extension>
+
+  </context>
+</include>

@@ -1,0 +1,86 @@
+<include>
+  <domain name="$${domain}">
+    <params>
+      <param name="dial-string" value="{^^:sip_invite_domain=${dialed_domain}:presence_id=${dialed_user}@${dialed_domain}}${sofia_contact(*/${dialed_user}@${dialed_domain})}" />
+    </params>
+    <variables>
+      <variable name="record_stereo" value="true"/>
+    </variables>
+    <groups>
+      <group name="default">
+        <users>
+          <!-- Test extensions 1001-1010 -->
+          <user id="1001">
+            <params>
+              <param name="password" value="1001"/>
+              <param name="vm-password" value="1001"/>
+            </params>
+            <variables>
+              <variable name="toll_allow" value="domestic,international,local"/>
+              <variable name="accountcode" value="1001"/>
+              <variable name="user_context" value="default"/>
+              <variable name="effective_caller_id_name" value="Extension 1001"/>
+              <variable name="effective_caller_id_number" value="1001"/>
+            </variables>
+          </user>
+
+          <user id="1002">
+            <params>
+              <param name="password" value="1002"/>
+              <param name="vm-password" value="1002"/>
+            </params>
+            <variables>
+              <variable name="toll_allow" value="domestic,international,local"/>
+              <variable name="accountcode" value="1002"/>
+              <variable name="user_context" value="default"/>
+              <variable name="effective_caller_id_name" value="Extension 1002"/>
+              <variable name="effective_caller_id_number" value="1002"/>
+            </variables>
+          </user>
+
+          <user id="1003">
+            <params>
+              <param name="password" value="1003"/>
+              <param name="vm-password" value="1003"/>
+            </params>
+            <variables>
+              <variable name="toll_allow" value="domestic,international,local"/>
+              <variable name="accountcode" value="1003"/>
+              <variable name="user_context" value="default"/>
+              <variable name="effective_caller_id_name" value="Extension 1003"/>
+              <variable name="effective_caller_id_number" value="1003"/>
+            </variables>
+          </user>
+
+          <user id="1004">
+            <params>
+              <param name="password" value="1004"/>
+              <param name="vm-password" value="1004"/>
+            </params>
+            <variables>
+              <variable name="toll_allow" value="domestic,international,local"/>
+              <variable name="accountcode" value="1004"/>
+              <variable name="user_context" value="default"/>
+              <variable name="effective_caller_id_name" value="Extension 1004"/>
+              <variable name="effective_caller_id_number" value="1004"/>
+            </variables>
+          </user>
+
+          <user id="1005">
+            <params>
+              <param name="password" value="1005"/>
+              <param name="vm-password" value="1005"/>
+            </params>
+            <variables>
+              <variable name="toll_allow" value="domestic,international,local"/>
+              <variable name="accountcode" value="1005"/>
+              <variable name="user_context" value="default"/>
+              <variable name="effective_caller_id_name" value="Extension 1005"/>
+              <variable name="effective_caller_id_number" value="1005"/>
+            </variables>
+          </user>
+        </users>
+      </group>
+    </groups>
+  </domain>
+</include>

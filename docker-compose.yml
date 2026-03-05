@@ -60,10 +60,10 @@ services:
 
   # --- FreeSWITCH ---
   freeswitch:
-    image: signalwire/freeswitch:latest
+    image: safarov/freeswitch:latest
     ports:
-      - "5060:5060/udp"   # SIP UDP
-      - "5060:5060/tcp"   # SIP TCP
+      - "5062:5060/udp"   # SIP UDP (mapped to 5062 to avoid MicroSIP conflict)
+      - "5062:5060/tcp"   # SIP TCP
       - "5061:5061/tcp"   # SIP TLS
       - "5080:5080/udp"   # SIP external
       - "8021:8021/tcp"   # ESL
